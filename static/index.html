@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Application</title>
+</head>
+<body>
+    <center>
+    <h2>Ask a question</h2>
+
+    <input type = "text" id = "question" placeholder="Enter question here">
+    <button onclick="ask()">Ask</button>
+
+    <br><br>
+
+    <input type = "file" id = "file">
+    <button onclick="upload()">Upload</button>
+
+    <p><b>Answer:</b></p>
+    <div id = "answer"></div>
+    </center>
+    
+    <script>
+        async function ask() {
+            const q = document.getElementById("question").value;
+
+            const res = await fetch("/query",{
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ question: q })
+            });
+
+            const data = await res.json();
+
+            document.getElementById("answer").innerText = data.answer;
+        }
+
+        async function upload() {
+            const fileInput = document.getElementById("file");
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+
+            const res = await fetch("/upload", {
+                method: "POST",
+                body: formData
+            });
+
+        const data = await res.json();
+
+        alert(data.message)
+        }
+    </script>
+
+    
+</body>
+</html>
