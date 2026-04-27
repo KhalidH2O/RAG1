@@ -1,15 +1,18 @@
+import os
+import hashlib
+
+os.environ["TRANSFORMERS_OFFLINE"] = "1"
+os.environ["HF_HUB_OFFLINE"] = "1"
+
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.document_loaders import TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 from langchain_ollama import OllamaLLM
 
-import os
-import hashlib
-
 class RAGService:
     def __init__(self):
-        self.emb = HuggingFaceEmbeddings()
+        self.emb = HuggingFaceEmbeddings(model_name="./models/all-MiniLM-L6-v2")
 
         self.splitter = RecursiveCharacterTextSplitter(
             chunk_size = 200,
@@ -24,7 +27,7 @@ class RAGService:
             )
         else:
             print("Creating a new DB...")
-            self.loader = TextLoader("data.txt")
+            self.loader = TextLoader("./data/data.txt")
             self.documents = self.loader.load()   
 
             self.chunks = self.splitter.split_documents(self.documents)
