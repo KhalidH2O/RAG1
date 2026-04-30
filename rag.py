@@ -9,6 +9,7 @@ from langchain_community.document_loaders import TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 from langchain_ollama import OllamaLLM
+from setup import initialise_model
 
 class RAGService:
     def __init__(self):
@@ -37,6 +38,8 @@ class RAGService:
                 self.emb,
                 persist_directory='./chroma_db'
             )
+        
+        initialise_model()
 
         self.llm = OllamaLLM(model='llama3.2')
 
@@ -91,5 +94,3 @@ class RAGService:
         self.db.add_documents(chunks)
 
         return "File uploaded successfully"
-    
-        
