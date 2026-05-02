@@ -36,6 +36,7 @@ def query_rag(req: QueryRequest):
         "question": req.question,
         "answer" : answer,
         "context": context
+        
     }
 
 @app.post("/upload")

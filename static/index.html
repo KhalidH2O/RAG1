@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RAG Application</title>
 </head>
-<body>
-    <center>
+<body style="color: gainsboro;background-color: black;text-align: center;"">
     <h2>Ask a question</h2>
 
     <input type = "text" id = "question" placeholder="Enter question here">
@@ -18,9 +17,8 @@
     <button onclick="upload()">Upload</button>
 
     <p><b>Answer:</b></p>
-    <div id = "answer"></div>
-    </center>
-    
+    <div id = "answer" style="text-align: left;""></div>
+
     <script>
         async function ask() {
             const q = document.getElementById("question").value;

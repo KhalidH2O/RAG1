@@ -41,16 +41,19 @@ class RAGService:
         
         initialise_model()
 
-        self.llm = OllamaLLM(model='llama3.2')
+        self.llm = OllamaLLM(model='llama3.2',temperature=0.2)
 
     def get_answer(self,query: str):
-        results = self.db.similarity_search(query)
+        generated_questions = self.multi_query(query)
+        
+        results = self.db.similarity_search(generated_questions)
 
         context = "\n\n".join([r.page_content for r in results])
 
         prompt = f"""
-        You MUST answer using ONLY the context below.
+        You MUST answer using the context below.
         If the answer is not in the context, say "Found no relevant data!"
+        The answer should contain relevant details.
         
         Context:
         {context}
@@ -58,7 +61,7 @@ class RAGService:
         Query:
         {query}
         """
-
+        
         response = self.llm.invoke(prompt)
         
         return response, context
@@ -94,3 +97,17 @@ class RAGService:
         self.db.add_documents(chunks)
 
         return "File uploaded successfully"
+    
+    def multi_query(self,query: str):
+        multi_prompt = f"""
+        Generate 4 different rephrasings of the following question. 
+        Each variation must be concise, semantically equivalent, and use different wording or perspective.
+        No introductory lines.
+
+        Question: "{query}"
+        """
+        
+        generated_questions = self.llm.invoke(multi_prompt)
+        print(generated_questions)
+        
+        return generated_questions 
