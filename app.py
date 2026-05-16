@@ -20,10 +20,6 @@ app.mount("/static", StaticFiles(directory="static"), name= "static")
 class QueryRequest(BaseModel):
     question: str
 
-# @app.get("/")
-# def home():
-#     return {"message": "RAG API is running."}
-
 @app.get("/")
 def serveui():
     return FileResponse("static/index.html")

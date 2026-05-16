@@ -1,23 +1,26 @@
 import os
 import hashlib
 
-os.environ["TRANSFORMERS_OFFLINE"] = "1"
-os.environ["HF_HUB_OFFLINE"] = "1"
+# os.environ["TRANSFORMERS_OFFLINE"] = "1"
+# os.environ["HF_HUB_OFFLINE"] = "1"
 
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.document_loaders import TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 from langchain_ollama import OllamaLLM
-from setup import initialise_model
+import emb_setup
 
 class RAGService:
     def __init__(self):
-        self.emb = HuggingFaceEmbeddings(model_name="./models/all-MiniLM-L6-v2")
+        self.MODEL = "llama3.2"
+
+        emb_setup.initialise_model()
+        self.emb = HuggingFaceEmbeddings(model_name = emb_setup.EMB_MODEL_PATH, encode_kwargs = {"normalize_embeddings": True})
 
         self.splitter = RecursiveCharacterTextSplitter(
-            chunk_size = 200,
-            chunk_overlap = 50
+            chunk_size = 600,
+            chunk_overlap = 120
         )
 
         if os.path.exists("./chroma_db"):
@@ -39,22 +42,31 @@ class RAGService:
                 persist_directory='./chroma_db'
             )
         
-        initialise_model()
-
-        self.llm = OllamaLLM(model='llama3.2',temperature=0.2)
+        self.llm = OllamaLLM(model=self.MODEL,temperature=0.1)
 
     def get_answer(self,query: str):
         generated_questions = self.multi_query(query)
+
+        queries = generated_questions.strip().split("\n")
+
+        all_results = []
+        for q in queries:
+            res = self.db.similarity_search(q, k=2)
+            all_results.extend(res)
+
+        unique_docs = {r.page_content: r for r in all_results}.values()
+    
+        context = "\n\n".join([r.page_content for r in unique_docs])
         
-        results = self.db.similarity_search(generated_questions)
-
-        context = "\n\n".join([r.page_content for r in results])
-
+        print("\nAll Retrieved Documents:\n--------------------\n", all_results,"\n\n")
+        print("\nUnique Documents:\n---------------------\n", unique_docs,"\n\n")
+        print("\nContext\n---------\n",context,"\n\n")
+        
         prompt = f"""
         You MUST answer using the context below.
         If the answer is not in the context, say "Found no relevant data!"
-        The answer should contain relevant details.
-        
+        Provide details if relevant.
+
         Context:
         {context}
 
@@ -110,4 +122,4 @@ class RAGService:
         generated_questions = self.llm.invoke(multi_prompt)
         print(generated_questions)
         
-        return generated_questions 
+        return generated_questions
